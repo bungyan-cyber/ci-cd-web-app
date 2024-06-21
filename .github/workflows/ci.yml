@@ -1,0 +1,63 @@
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        pip install -r app/requirements.txt
+        pip install pytest
+
+    - name: Run tests
+      run: |
+        pytest tests
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        pip install flake8
+
+    - name: Lint with flake8
+      run: |
+        flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Login to Heroku
+      uses: akhileshns/heroku-deploy@v3.12.12
+      with:
+        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+        heroku_app_name: "your-heroku-app-name"
+        heroku_email: "your-heroku-email"
+
+    - name: Deploy to Heroku
+      run: git push heroku main
